@@ -33,33 +33,26 @@ import ExploreContainer from '@/components/ExploreContainer.vue';
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import axios from '@/api/axiosInstance'; // Import the custom Axios instance
 
-export default defineComponent({
-  name: 'Tab1Page',
-  data() {
-    return {
-      rfidResult: null as string | null,
-    };
-  },
-  methods: {
-    async toggleLed(on: boolean) {
-      try {
-        await axios.get(`${on ? 'on' : 'off'}`);
-      } catch (error) {
-        console.error('Error toggling LED:', error);
-      }
-    },
-    async readRFID() {
-      try {
-        const response = await axios.get<string>('read');
-        this.rfidResult = response.data;
-      } catch (error) {
-        console.error('Error reading RFID:', error);
-        this.rfidResult = 'Error reading RFID';
-      }
-    },
-  },
-});
+const rfidResult = ref<string | null>(null);
+
+const toggleLed = async (on: boolean) => {
+  try {
+    await axios.get(`${on ? 'on' : 'off'}`);
+  } catch (error) {
+    console.error('Error toggling LED:', error);
+  }
+};
+
+const readRFID = async () => {
+  try {
+    const response = await axios.get<string>('read');
+    rfidResult.value = response.data;
+  } catch (error) {
+    console.error('Error reading RFID:', error);
+    rfidResult.value = 'Error reading RFID';
+  }
+};
 </script>
