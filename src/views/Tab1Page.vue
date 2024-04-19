@@ -24,6 +24,12 @@
         <p v-if="rfidResult">{{ rfidResult }}</p>
       </div>
 
+      <div class="ion-text-center">
+        <h2>Fetch Example Data</h2>
+        <ion-button @click="fetchData" expand="block">Fetch Data</ion-button>
+        <p v-if="fetchedData">{{ fetchedData }}</p>
+      </div>
+
       <ExploreContainer name="Tab 1 page" />
     </ion-content>
 
@@ -62,6 +68,7 @@ export default defineComponent({
   setup() {
     const rfidResult = ref<string | null>(null);
     const error = ref<string | null>(null);
+    const fetchedData = ref<string | null>(null);
 
     const toggleLed = async (on: boolean) => {
       try {
@@ -90,12 +97,24 @@ export default defineComponent({
       error.value = null;
     };
 
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('https://jsonplaceholder.typicode.com/todos/1');
+        fetchedData.value = JSON.stringify(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        showErrorModal(`Error fetching data: ${error}`);
+      }
+    };
+
     return {
       rfidResult,
       error,
       toggleLed,
       readRFID,
       dismissErrorModal,
+      fetchedData,
+      fetchData,
     };
   },
 });
