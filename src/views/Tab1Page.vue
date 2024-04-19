@@ -1,8 +1,3 @@
-<script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/vue';
-import ExploreContainer from '@/components/ExploreContainer.vue';
-</script>
-
 <template>
   <ion-page>
     <ion-header>
@@ -16,6 +11,7 @@ import ExploreContainer from '@/components/ExploreContainer.vue';
           <ion-title size="large">Tab 1</ion-title>
         </ion-toolbar>
       </ion-header>
+
       <div class="ion-text-center">
         <h2>LED Control</h2>
         <ion-button @click="toggleLed(true)">Turn On</ion-button>
@@ -24,35 +20,83 @@ import ExploreContainer from '@/components/ExploreContainer.vue';
       <hr />
       <div class="ion-text-center">
         <h2>RFID Reader</h2>
-        <ion-button @click="readRFID">Read RFID</ion-button>
+        <ion-button @click="readRFID" expand="block">Read RFID</ion-button>
         <p v-if="rfidResult">{{ rfidResult }}</p>
       </div>
+
       <ExploreContainer name="Tab 1 page" />
     </ion-content>
+
+    <!-- Modal for displaying error messages -->
+    <ion-modal :is-open="error !== null">
+      <ion-content class="ion-text-center">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Error</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-text v-if="error" class="error-text">{{ error }}</ion-text>
+          </ion-card-content>
+        </ion-card>
+        <ion-button @click="dismissErrorModal">Close</ion-button>
+      </ion-content>
+    </ion-modal>
   </ion-page>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import axios from '@/api/axiosInstance'; // Import the custom Axios instance
+import axios from '@/api/axiosInstance';
+import { IonButton, IonModal, IonCard, IonCardHeader, IonCardTitle, IonCardContent } from '@ionic/vue';
+import ExploreContainer from '@/components/ExploreContainer.vue';
 
-const rfidResult = ref<string | null>(null);
+export default defineComponent({
+  components: {
+    IonButton,
+    IonModal,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+  },
+  setup() {
+    const rfidResult = ref<string | null>(null);
+    const error = ref<string | null>(null);
 
-const toggleLed = async (on: boolean) => {
-  try {
-    await axios.get(`${on ? 'on' : 'off'}`);
-  } catch (error) {
-    console.error('Error toggling LED:', error);
-  }
-};
+    const toggleLed = async (on: boolean) => {
+      try {
+        await axios.get(`${on ? 'on' : 'off'}`);
+      } catch (error) {
+        console.error('Error toggling LED:', error);
+        showErrorModal(`Error toggling LED ${error}`);
+      }
+    };
 
-const readRFID = async () => {
-  try {
-    const response = await axios.get<string>('read');
-    rfidResult.value = response.data;
-  } catch (error) {
-    console.error('Error reading RFID:', error);
-    rfidResult.value = 'Error reading RFID';
-  }
-};
+    const readRFID = async () => {
+      try {
+        const response = await axios.get<string>('/api/read');
+        rfidResult.value = response.data;
+      } catch (error) {
+        console.error('Error reading RFID:', error);
+        showErrorModal(`Error reading RFID  ${error}`);
+      }
+    };
+
+    const showErrorModal = (errorMessage: string) => {
+      error.value = errorMessage;
+    };
+
+    const dismissErrorModal = () => {
+      error.value = null;
+    };
+
+    return {
+      rfidResult,
+      error,
+      toggleLed,
+      readRFID,
+      dismissErrorModal,
+    };
+  },
+});
 </script>
